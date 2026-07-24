@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Debunkly — Painel Administrativo</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f1f5f9;
+      color: #111827;
+    }
+
+    .container {
+      max-width: 700px;
+      margin: auto;
+      padding: 20px;
+    }
+
+    .card {
+      background: white;
+      padding: 25px;
+      margin-top: 25px;
+      border-radius: 18px;
+      box-shadow: 0 8px 25px rgba(0,0,0,.08);
+    }
+
+    h1 {
+      text-align: center;
+      color: #0f172a;
+    }
+
+    h2 {
+      margin-top: 30px;
+      color: #1d4ed8;
+    }
+
+    label {
+      display: block;
+      font-weight: bold;
+      margin-top: 15px;
+      margin-bottom: 6px;
+    }
+
+    input,
+    textarea {
+      width: 100%;
+      padding: 14px;
+      border: 1px solid #cbd5e1;
+      border-radius: 10px;
+      font-size: 16px;
+    }
+
+    textarea {
+      min-height: 120px;
+    }
+
+    button {
+      width: 100%;
+      padding: 15px;
+      margin-top: 18px;
+      border: none;
+      border-radius: 10px;
+      background: #2563eb;
+      color: white;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #1d4ed8;
+    }
+
+    .logout {
+      background: #dc2626;
+    }
+
+    .login {
+      max-width: 500px;
+      margin: 50px auto;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    .status {
+      margin-top: 15px;
+      padding: 12px;
+      border-radius: 10px;
+      background: #dcfce7;
+      color: #166534;
+      text-align: center;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- LOGIN -->
+  <div id="loginArea" class="container login">
+    <div class="card">
+
+      <h1>🛡️ Debunkly</h1>
+      <h2 style="text-align:center;">🔐 Área Administrativa</h2>
+
+      <label>E-mail</label>
+      <input
+        type="email"
+        id="email"
+        placeholder="Digite seu e-mail"
+      >
+
+      <label>Senha</label>
+      <input
+        type="password"
+        id="password"
+        placeholder="Digite sua senha"
+      >
+
+      <button onclick="entrar()">
+        Entrar
+      </button>
+
+      <p id="loginMensagem"></p>
+
+    </div>
+  </div>
+
+
+  <!-- PAINEL -->
+  <div id="painel" class="container hidden">
+
+    <div class="card">
+
+      <h1>🛡️ Painel do Debunkly</h1>
+
+      <p>
+        Aqui você poderá atualizar os links do site sem precisar editar o código.
+      </p>
+
+      <h2>💰 Links de afiliados</h2>
+
+      <label>Mercado Livre</label>
+      <input id="mercadoLivre" placeholder="Cole seu link de afiliado">
+
+      <label>Shopee</label>
+      <input id="shopee" placeholder="Cole seu link de afiliado">
+
+      <label>Magazine Luiza</label>
+      <input id="magalu" placeholder="Cole seu link de afiliado">
+
+      <label>Amazon</label>
+      <input id="amazon" placeholder="Cole seu link de afiliado">
+
+
+      <h2>🔎 Links do Reclame Aqui</h2>
+
+      <label>Mercado Livre</label>
+      <input id="reclameMercadoLivre">
+
+      <label>Shopee</label>
+      <input id="reclameShopee">
+
+      <label>Magazine Luiza</label>
+      <input id="reclameMagalu">
+
+      <label>Amazon</label>
+      <input id="reclameAmazon">
+
+
+      <h2>📢 Banner de parceria</h2>
+
+      <textarea
+        id="banner"
+        placeholder="Cole aqui o HTML do banner da parceria. Se deixar vazio, o banner ficará invisível."
+      ></textarea>
+
+
+      <button onclick="salvar()">
+        💾 Salvar alterações
+      </button>
+
+      <div id="status"></div>
+
+      <button class="logout" onclick="sair()">
+        🚪 Sair
+      </button>
+
+    </div>
+
+  </div>
+
+
+<script>
+
+  /*
+  IMPORTANTE:
+
+  Esta é a estrutura visual do painel.
+
+  Na próxima etapa vamos conectar
+  o login real e seguro no servidor.
+
+  NÃO coloque sua senha real neste arquivo.
+  */
+
+
+  function entrar() {
+
+    const email =
+      document.getElementById("email").value;
+
+    const senha =
+      document.getElementById("password").value;
+
+
+    if (!email || !senha) {
+
+      document.getElementById("loginMensagem").innerText =
+        "⚠️ Preencha seu e-mail e sua senha.";
+
+      return;
+    }
+
+
+    /*
+    O login real será conectado
+    na próxima etapa usando a Vercel.
+    */
+
+    document.getElementById("loginArea")
+      .classList.add("hidden");
+
+    document.getElementById("painel")
+      .classList.remove("hidden");
+
+  }
+
+
+  function salvar() {
+
+    document.getElementById("status").innerText =
+      "✅ Configurações preparadas para serem salvas.";
+
+  }
+
+
+  function sair() {
+
+    location.reload();
+
+  }
+
+</script>
+
+</body>
+</html>
