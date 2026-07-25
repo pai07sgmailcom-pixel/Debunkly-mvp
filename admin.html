@@ -194,8 +194,17 @@ function loadConfig(){
   document.getElementById('banner').value = saved.banner || '';
 }
 
+/*
+  IMPORTANTE: como este arquivo é estático (sem servidor por trás),
+  essa credencial fica visível pra quem abrir o código-fonte da página.
+  Serve pra travar acesso casual, mas não é segurança de verdade —
+  quando o painel ganhar backend, troque isso por login validado no servidor.
+*/
+const ADMIN_EMAIL = "pauloeliseu1983santos@gmail.com";
+const ADMIN_SENHA = "Paulo590642&";
+
 function entrar(){
-  const email = document.getElementById('email').value;
+  const email = document.getElementById('email').value.trim();
   const senha = document.getElementById('password').value;
 
   if(!email || !senha){
@@ -203,11 +212,11 @@ function entrar(){
     return;
   }
 
-  /*
-    IMPORTANTE: login ainda não está conectado a um backend real —
-    isso é só a estrutura visual. Não use senha real neste arquivo
-    até o login estar validado do lado do servidor.
-  */
+  if(email !== ADMIN_EMAIL || senha !== ADMIN_SENHA){
+    document.getElementById('loginMensagem').innerText = '⚠️ E-mail ou senha incorretos.';
+    return;
+  }
+
   document.getElementById('loginArea').classList.add('hidden');
   document.getElementById('painel').classList.remove('hidden');
   loadConfig();
