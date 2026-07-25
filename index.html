@@ -308,6 +308,11 @@
 // Deixe em branco ("") para o app tentar fetch direto do navegador (sujeito a bloqueio de CORS).
 const PROXY_URL = "https://pauloeliseu1983santosctrl--3182e0aa7f2611f19c0a1607ee4eb77e.web.val.run";
 
+// Cole aqui sua chave da API do Google Safe Browsing (Google Cloud Console > APIs e serviços
+// > Biblioteca > Safe Browsing API > Ativar > Credenciais). Deixe em branco ("") para pular
+// essa checagem e usar só a heurística local.
+const SAFE_BROWSING_API_KEY = "AIzaSyDeuDcfkIRUoTcJJkFGvNNvaeVQDj8ijCM";
+
 function extractProductTitle(pageText){
   if(!pageText) return null;
   const ogMatch = pageText.match(/<meta[^>]+property=["']og:title["'][^>]+content=["']([^"']+)["']/i)
@@ -352,6 +357,42 @@ function extractUrl(raw){
   const candidate = match ? match[0] : raw.trim();
   try{ return new URL(candidate); }catch(e){
     try{ return new URL('https://' + candidate); }catch(e2){ return null; }
+  }
+}
+
+// Consulta a API do Google Safe Browsing pra ver se a URL já está numa lista
+// conhecida de malware/phishing/software indesejado. Retorna:
+//   { found: true,  types: [...] }  -> URL está na lista de perigo
+//   { found: false }                -> URL não consta na lista
+//   null                            -> sem chave configurada ou erro na consulta
+async function checkSafeBrowsing(urlHref){
+  if(!SAFE_BROWSING_API_KEY) return null;
+  try{
+    const body = {
+      client: { clientId: "debunkly-app", clientVersion: "1.0.0" },
+      threatInfo: {
+        threatTypes: ["MALWARE", "SOCIAL_ENGINEERING", "UNWANTED_SOFTWARE", "POTENTIALLY_HARMFUL_APPLICATION"],
+        platformTypes: ["ANY_PLATFORM"],
+        threatEntryTypes: ["URL"],
+        threatEntries: [{ url: urlHref }]
+      }
+    };
+    const res = await fetch(
+      `https://safebrowsing.googleapis.com/v4/threatMatches:find?key=${SAFE_BROWSING_API_KEY}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      }
+    );
+    if(!res.ok) return null;
+    const data = await res.json();
+    if(data.matches && data.matches.length){
+      return { found: true, types: [...new Set(data.matches.map(m => m.threatType))] };
+    }
+    return { found: false };
+  }catch(e){
+    return null;
   }
 }
 
@@ -510,7 +551,20 @@ async function scan(){
     }
   }catch(e){ pageText = null; }
 
+  const sbResult = await checkSafeBrowsing(u.href);
+
   const {checks, score} = runHeuristics(u, pageText);
+  let finalScore = score;
+
+  if(sbResult && sbResult.found){
+    checks.push({label:'Domínio consta na lista de sites perigosos do Google Safe Browsing', status:'warn'});
+    finalScore += 8; // isoladamente já empurra pra "alto risco"
+  } else if(sbResult && sbResult.found === false){
+    checks.push({label:'Não consta na lista de sites perigosos do Google Safe Browsing', status:'ok'});
+  } else {
+    checks.push({label:'Checagem no Google Safe Browsing não disponível', status:'na'});
+  }
+
   logEl.classList.add('show');
 
   checks.forEach((c, i) => {
@@ -523,13 +577,13 @@ async function scan(){
     logEl.appendChild(line);
   });
 
-  const v = verdictFromScore(score);
+  const v = verdictFromScore(finalScore);
   const productTitle = extractProductTitle(pageText);
   setTimeout(() => {
     verdictEl.className = 'verdict show ' + v.level;
     document.getElementById('verdictTitle').textContent = v.title;
     document.getElementById('verdictDesc').textContent = v.desc;
-    saveHistory({url:u.href, level:v.level, score});
+    saveHistory({url:u.href, level:v.level, score:finalScore});
     renderStoresPanel(v.level, productTitle);
     setupShareButton(v, u.hostname);
     btn.disabled = false;
